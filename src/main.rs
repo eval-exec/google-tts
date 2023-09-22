@@ -125,7 +125,7 @@ fn main() {
 
 fn get_access_token() -> String {
     std::process::Command::new("gcloud")
-        .args(&["auth", "application-default", "print-access-token"])
+        .args(["auth", "application-default", "print-access-token"])
         .output()
         .unwrap()
         .stdout
