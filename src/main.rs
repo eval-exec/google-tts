@@ -1,6 +1,5 @@
 use base64::Engine;
 use std::io::Write;
-use std::str::FromStr;
 
 use clap::Parser;
 #[derive(Parser, Debug)]
@@ -13,7 +12,6 @@ struct Args {
 }
 
 use reqwest::header::HeaderValue;
-
 
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
@@ -53,8 +51,7 @@ fn main() {
         eprintln!("text is empty");
         std::process::exit(1);
     }
-    let GOOGLE_APPLICATION_CREDENTIALS = std::env::var("GOOGLE_APPLICATION_CREDENTIALS");
-    if GOOGLE_APPLICATION_CREDENTIALS.is_err() {
+    if std::env::var("GOOGLE_APPLICATION_CREDENTIALS").is_err() {
         eprintln!("GOOGLE_APPLICATION_CREDENTIALS env is empty");
         std::process::exit(2);
     }
@@ -73,12 +70,11 @@ fn main() {
 
     let mut headers = reqwest::header::HeaderMap::new();
 
-    let ACCESS_TOKEN = get_access_token();
-    let header0 = HeaderValue::from_str(&format!("Bearer {}", ACCESS_TOKEN)).unwrap();
+    let access_token: String = get_access_token();
+    let header0 = HeaderValue::from_str(&format!("Bearer {}", access_token)).unwrap();
     headers.insert("Authorization", header0);
     let header1 = HeaderValue::from_str("application/json; charset=utf-8").unwrap();
     headers.insert("Content-Type", header1);
-    dbg!(&headers);
     let client = reqwest::blocking::Client::builder()
         .default_headers(headers)
         .build()
@@ -104,7 +100,8 @@ fn main() {
             .unwrap();
             let mut file = tempfile::NamedTempFile::new().unwrap();
             let file_path = file.path().display().to_string();
-            file.write(audio_bytes.as_slice())
+            let _ = file
+                .write(audio_bytes.as_slice())
                 .expect("write file failed");
             file.flush().expect("flush file failed");
 
@@ -115,9 +112,7 @@ fn main() {
                 Err(err) => {
                     eprintln!("play error: {:?}", err);
                 }
-                Ok(output) => {
-                    eprintln!("play output: {:?}", output);
-                }
+                Ok(_output) => {}
             }
         }
     }
